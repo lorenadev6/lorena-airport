@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#cce6fb">
+    <title>Lorena Airport | Interactive Portfolio</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="escenario-3d" aria-label="Isometric airport terminal"></div>
+
+    <div class="interface-layer">
+        <header class="brand" aria-label="Lorena Airport">
+            <span class="brand-mark" aria-hidden="true">✈</span>
+            <span class="brand-copy">
+                <span class="brand-name"><span>LORENA.</span><strong>AIRPORT</strong></span>
+                <span class="brand-subtitle">INTERACTIVE PORTFOLIO</span>
+            </span>
+        </header>
+
+        <nav class="language-switch" aria-label="Language">
+            <button type="button" data-idioma="de" aria-pressed="true">DE</button>
+            <button type="button" data-idioma="en" aria-pressed="false">EN</button>
+            <button type="button" data-idioma="es" aria-pressed="false">ES</button>
+        </nav>
+
+        <main>
+            <section class="hero-copy" aria-labelledby="hero-title">
+                <p class="welcome-tag" id="welcome-tag">WELCOME ABOARD · LC / 2026</p>
+                <h1 id="hero-title">
+                    <span id="hero-line-1">DEIN</span>
+                    <span id="hero-line-2">NÄCHSTES</span>
+                    <span id="hero-line-3">ZIEL:</span>
+                    <span id="hero-line-4" class="hero-highlight">LORENA.</span>
+                </h1>
+                <p class="hero-intro" id="hero-intro">Eine kreative Reise durch Code, Teamarbeit und menschenzentrierte Technologie.</p>
+                <p class="hero-hint" id="hero-hint">ISOMETRIC TERMINAL · SELECT A DESTINATION TO MOVE THE CAMERA</p>
+            </section>
+
+            <section id="informacion" class="destination-card" aria-live="polite" hidden>
+                <div class="destination-card-copy">
+                    <p class="destination-kicker" id="destination-kicker">DESTINATION SELECTED</p>
+                    <h2 id="titulo-destino"></h2>
+                    <p id="descripcion-destino"></p>
+                </div>
+                <button id="volver" type="button">← BACK TO DEPARTURES</button>
+            </section>
+
+            <aside id="departures" class="departures-panel" aria-labelledby="departures-heading">
+                <div class="departures-heading-row">
+                    <h2 id="departures-heading"><span aria-hidden="true">✈</span> DEPARTURES</h2>
+                    <span class="departures-prompt" id="departures-prompt">FLUG AUSWÄHLEN</span>
+                </div>
+                <div class="departure-list">
+                    <button type="button" class="departure-row" data-destino="about">
+                        <span class="flight-code">LC-001</span><span class="flight-label" data-label="about">ÜBER MICH</span><span class="flight-arrow" aria-hidden="true">↗</span>
+                    </button>
+                    <button type="button" class="departure-row" data-destino="skills">
+                        <span class="flight-code">LC-002</span><span class="flight-label" data-label="skills">KENNTNISSE</span><span class="flight-arrow" aria-hidden="true">↗</span>
+                    </button>
+                    <button type="button" class="departure-row" data-destino="projects">
+                        <span class="flight-code">LC-003</span><span class="flight-label" data-label="projects">PROJEKTE</span><span class="flight-arrow" aria-hidden="true">↗</span>
+                    </button>
+                    <button type="button" class="departure-row" data-destino="contact">
+                        <span class="flight-code">LC-004</span><span class="flight-label" data-label="contact">KONTAKT</span><span class="flight-arrow" aria-hidden="true">↗</span>
+                    </button>
+                </div>
+                <footer class="departures-footer">
+                    <span id="terminal-caption">LORENA AIRPORT · TERMINAL 01</span>
+                    <span class="gate-status"><i aria-hidden="true"></i><span id="gate-status-label">ALL GATES OPEN</span></span>
+                </footer>
+            </aside>
+        </main>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

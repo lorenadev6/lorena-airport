@@ -96,7 +96,7 @@ const poseInicialCamara = {
 };
 const posesCamara = {
     about: { posicion: new THREE.Vector3(7.5, 24.8, 27), enfoque: new THREE.Vector3(-10.5, 2, 5) },
-    skills: { posicion: new THREE.Vector3(26, 23.8, 25), enfoque: new THREE.Vector3(8, 1, 3) },
+    skills: { posicion: new THREE.Vector3(25.1596, 23.8, 21.6024), enfoque: new THREE.Vector3(7.1596, 1, -0.3976) },
     projects: { posicion: new THREE.Vector3(32.5, 26.3, 13.5), enfoque: new THREE.Vector3(14.5, 3.5, -8.5) },
     contact: { posicion: new THREE.Vector3(6.5, 24.3, 29), enfoque: new THREE.Vector3(-11.5, 1.5, 7) }
 };
@@ -212,9 +212,9 @@ const zonasTerminal = {
     gate: { x: -11.5, z: 4.8 },
     checkin: { x: -8.5, z: -5.6 },
     departures: { x: 4.5, z: -11.15 },
-    skills: { x: 8.0, z: 3.0 },
-    shop: { x: 14.0, z: -1.0 },
-    cafe: { x: 14.0, z: 6.0 },
+    skills: { x: 7.1596, z: -0.3976 },
+    shop: { x: 8.7, z: 10.7 },
+    cafe: { x: 13.4, z: 10.85 },
     contact: { x: -11.5, z: 8.0 },
     projects: { x: 14.5, z: -9.5 }
 };
@@ -538,6 +538,15 @@ crearBloque(1.9, 0.24, 1.48, negro, -11.5, 2.98, 8.0);
 crearPanelTexto("CONTACT", "#171717", "#F8DA3D", 2.1, 0.48, -11.5, 3.45, 8.9, null, 0);
 
 // Mostrador SKILLS en primer plano a la derecha del pasillo.
+const grupoSkills = new THREE.Group();
+escena.add(grupoSkills);
+const agregarEscenaAntesSkills = escena.add.bind(escena);
+escena.add = (...objetos) => {
+    const elementosSkills = objetos.filter((objeto) => objeto !== grupoSkills && objeto !== escena);
+    if (elementosSkills.length) grupoSkills.add(...elementosSkills);
+    return escena;
+};
+grupoSkills.position.set(zonasTerminal.skills.x - 8.0, 0, zonasTerminal.skills.z - 3.0);
 const materialFrontalSkills = new THREE.MeshStandardMaterial({ color: "#E95332", roughness: 0.78 });
 const materialMarcoSkills = new THREE.MeshStandardMaterial({ color: "#343434", roughness: 0.62 });
 const geometriaMonitorSkills = new THREE.BoxGeometry(1.68, 1.04, 0.17);
@@ -591,6 +600,7 @@ crearBloque(7.82, 0.24, 2.34, coral, 8.0, 2.01, 3.0);
 });
 
 crearPanelTexto("SKILLS", "#171717", "#F8DA3D", 5.8, 0.82, 8.0, 2.7, 4.16, coral, 0);
+escena.add = agregarEscenaAntesSkills;
 
 // PROJECTS y espacios reservados para tienda y café en el ala derecha.
 crearPanelTexto("PROJECTS", "#F9F4EC", "#171717", 5.7, 0.9, 14.3, 4.75, -11.45, hormigon, 0);
@@ -600,15 +610,157 @@ crearPanelTexto("PROJECTS", "#F9F4EC", "#171717", 5.7, 0.9, 14.3, 4.75, -11.45, 
     crearBloque(0.08, 1.3, 1.15, materialTarjeta, 12.0, 2.1, z);
 });
 
-// Zonas comerciales preparadas: mostradores bajos y soportes de señalización.
-crearBloque(4.6, 1.15, 1.5, azul, zonasTerminal.shop.x, 0.58, zonasTerminal.shop.z);
-crearBloque(4.8, 0.16, 1.65, hormigon, zonasTerminal.shop.x, 1.22, zonasTerminal.shop.z);
-[-1.7, 1.7].forEach((dx) => crearBloque(0.16, 1.55, 0.16, hormigon, zonasTerminal.shop.x + dx, 2.08, -0.08));
-crearPanelTexto("AIRPORT SHOP", "#171717", "#FFFFFF", 4.5, 0.68, zonasTerminal.shop.x, 3.35, 0.0, negro, 0);
-crearBloque(4.6, 1.15, 1.5, coral, zonasTerminal.cafe.x, 0.58, zonasTerminal.cafe.z);
-crearBloque(4.8, 0.16, 1.65, hormigon, zonasTerminal.cafe.x, 1.22, zonasTerminal.cafe.z);
-[-1.7, 1.7].forEach((dx) => crearBloque(0.16, 1.55, 0.16, hormigon, zonasTerminal.cafe.x + dx, 2.08, 7.08));
-crearPanelTexto("CAFÉ", "#171717", "#F8DA3D", 3.2, 0.68, zonasTerminal.cafe.x, 3.35, 7.16, negro, 0);
+// AIRPORT SHOP: fachada abierta al pasillo, con escaparates y equipaje visible.
+const shopX = zonasTerminal.shop.x;
+const shopZ = zonasTerminal.shop.z;
+const tiendaAirport = new THREE.Group();
+escena.add(tiendaAirport);
+const agregarElementoTienda = escena.add.bind(escena);
+escena.add = (...objetos) => {
+    const elementosTienda = objetos.filter((objeto) => objeto !== tiendaAirport && objeto !== escena);
+    if (elementosTienda.length) tiendaAirport.add(...elementosTienda);
+    return escena;
+};
+const shopFloor = new THREE.MeshStandardMaterial({ color: "#FFF7E9", roughness: 0.88 });
+const shopPink = new THREE.MeshStandardMaterial({ color: "#F04491", roughness: 0.66 });
+const shopGlass = new THREE.MeshStandardMaterial({
+    color: "#C9EDFF", transparent: true, opacity: 0.28, roughness: 0.14,
+    metalness: 0.06, depthWrite: false, side: THREE.DoubleSide
+});
+const shopWarm = new THREE.MeshStandardMaterial({ color: "#FFD878", emissive: "#FFB52E", emissiveIntensity: 0.55, roughness: 0.7 });
+const shopDark = new THREE.MeshStandardMaterial({ color: "#51465A", roughness: 0.78 });
+const shopWhite = new THREE.MeshStandardMaterial({ color: "#FFFDF8", roughness: 0.7 });
+
+// Low, warm floor and bright cornice define the compact retail footprint.
+crearBloque(4.65, 0.12, 2.55, shopFloor, shopX, 0.02, shopZ);
+crearBloque(4.85, 0.22, 2.76, shopPink, shopX, 3.08, shopZ);
+crearBloque(4.65, 0.12, 2.56, amarillo, shopX, 2.91, shopZ);
+
+// Side piers and rear wall frame an open entrance facing the terminal aisle (+Z).
+crearBloque(0.22, 2.78, 2.55, shopPink, shopX - 2.22, 1.48, shopZ);
+crearBloque(0.22, 2.78, 2.55, shopPink, shopX + 2.22, 1.48, shopZ);
+crearBloque(4.25, 2.72, 0.16, hormigon, shopX, 1.46, shopZ - 1.18);
+crearBloque(0.13, 2.42, 0.12, azul, shopX - 2.08, 1.53, shopZ + 1.22);
+crearBloque(0.13, 2.42, 0.12, azul, shopX + 2.08, 1.53, shopZ + 1.22);
+
+// Store sign sits on the canopy and faces the starting camera.
+crearPanelTexto("AIRPORT SHOP", "#F04491", "#FFFFFF", 4.45, 0.7, shopX, 3.68, shopZ + 0.09, shopPink, null);
+
+// Two transparent display windows with slim colored frames; the center stays open.
+[-1.13, 1.13].forEach((dx) => {
+    crearBloque(1.85, 1.72, 0.045, shopGlass, shopX + dx, 1.43, shopZ + 1.18, false);
+    [-0.93, 0.93].forEach((edge) => crearBloque(0.055, 1.8, 0.07, shopPink, shopX + dx + edge, 1.43, shopZ + 1.19));
+    crearBloque(1.9, 0.06, 0.07, shopPink, shopX + dx, 2.31, shopZ + 1.19);
+});
+
+// Warm ceiling lights are visible through the open entrance.
+[-1.35, 0, 1.35].forEach((dx) => crearBloque(0.52, 0.055, 0.58, shopWarm, shopX + dx, 2.76, shopZ - 0.18, false));
+
+// Back shelving: restrained rows of luggage, bags and gift boxes.
+[-1.35, 1.35].forEach((dx) => {
+    crearBloque(1.12, 1.62, 0.38, shopWhite, shopX + dx, 1.02, shopZ - 0.91);
+    [0.56, 1.12, 1.65].forEach((y) => crearBloque(1.02, 0.055, 0.48, shopPink, shopX + dx, y, shopZ - 0.67));
+});
+
+// Luggage uses rounded, softened boxes with separate handles and wheels.
+function crearMaleta(x, z, color, escala = 1) {
+    const colorMaleta = new THREE.MeshStandardMaterial({ color, roughness: 0.62 });
+    const cuerpo = new THREE.Mesh(new THREE.BoxGeometry(0.48 * escala, 0.68 * escala, 0.3 * escala, 2, 2, 1), colorMaleta);
+    cuerpo.position.set(x, 0.42 * escala, z);
+    cuerpo.castShadow = true;
+    cuerpo.receiveShadow = true;
+    escena.add(cuerpo);
+    crearBloque(0.2 * escala, 0.055 * escala, 0.055 * escala, shopDark, x, 0.79 * escala, z, false);
+    [-0.15, 0.15].forEach((dx) => crearBloque(0.09 * escala, 0.08 * escala, 0.07 * escala, shopDark, x + dx * escala, 0.06 * escala, z, false));
+}
+crearMaleta(shopX - 1.42, shopZ + 0.35, "#2454F4", 0.88);
+crearMaleta(shopX - 0.88, shopZ + 0.48, "#F8DA3D", 0.72);
+crearMaleta(shopX + 1.41, shopZ + 0.31, "#FF643B", 0.9);
+crearMaleta(shopX + 0.89, shopZ - 0.05, "#F04491", 0.68);
+
+// A compact checkout counter and a few large gift bags anchor the entrance.
+crearBloque(1.12, 0.9, 0.55, coral, shopX + 0.1, 0.49, shopZ + 0.56);
+crearBloque(1.18, 0.09, 0.62, shopWhite, shopX + 0.1, 0.98, shopZ + 0.56);
+[-0.34, 0.37].forEach((dx, index) => {
+    const bolsa = [azul, amarillo][index];
+    crearBloque(0.36, 0.48, 0.28, bolsa, shopX + 0.95 + dx, 0.28, shopZ - 0.31);
+    crearBloque(0.17, 0.07, 0.1, shopPink, shopX + 0.95 + dx, 0.57, shopZ - 0.31, false);
+});
+
+// Small display plinths keep gift boxes readable without crowding the storefront.
+crearBloque(0.72, 0.13, 0.56, azul, shopX - 0.62, 0.12, shopZ - 0.18);
+crearBloque(0.38, 0.38, 0.34, amarillo, shopX - 0.62, 0.38, shopZ - 0.18);
+crearBloque(0.34, 0.29, 0.31, rosa, shopX - 0.21, 0.34, shopZ - 0.2);
+
+// CAFÉ: compact coral counter with a readable sign and visible barista equipment.
+const cafeX = zonasTerminal.cafe.x;
+const cafeZBase = 12.7;
+const cafeZ = cafeZBase;
+const cafeGroup = new THREE.Group();
+// Register the café as a sibling of the shop, then route its geometry into it.
+escena.add = agregarElementoTienda;
+escena.add(cafeGroup);
+cafeGroup.position.z = zonasTerminal.cafe.z - cafeZBase;
+escena.add = (...objetos) => {
+    const elementosCafe = objetos.filter((objeto) => objeto !== cafeGroup && objeto !== escena);
+    if (elementosCafe.length) cafeGroup.add(...elementosCafe);
+    return escena;
+};
+const cafeBlanco = new THREE.MeshStandardMaterial({ color: "#FFF9EF", roughness: 0.78 });
+const cafeOscuro = new THREE.MeshStandardMaterial({ color: "#382C2C", roughness: 0.58 });
+const cafeVidrio = new THREE.MeshStandardMaterial({ color: "#C7E8F8", transparent: true, opacity: 0.38, roughness: 0.15, metalness: 0.04, depthWrite: false, side: THREE.DoubleSide });
+const cafeProducto = new THREE.MeshStandardMaterial({ color: "#D88A45", roughness: 0.76 });
+
+// Defined footprint and back wall keep all café objects in their own zone.
+crearBloque(4.3, 0.12, 2.45, cafeBlanco, cafeX, 0.02, cafeZ);
+crearBloque(4.45, 2.35, 0.18, coral, cafeX, 1.31, cafeZ - 1.08);
+crearBloque(0.18, 2.35, 2.3, coral, cafeX - 2.12, 1.31, cafeZ - 0.02);
+crearBloque(0.18, 2.35, 2.3, coral, cafeX + 2.12, 1.31, cafeZ - 0.02);
+crearBloque(4.55, 0.2, 2.55, coral, cafeX, 2.58, cafeZ);
+
+// Large black fascia and white lettering, facing the initial camera.
+crearPanelTexto("CAFÉ", "#171717", "#FFFFFF", 3.0, 0.72, cafeX, 3.18, cafeZ + 0.12, negro, null);
+
+// Service bar, glass pastry case, and a few clearly readable pastries.
+crearBloque(3.55, 0.98, 0.62, coral, cafeX, 0.52, cafeZ + 0.62);
+crearBloque(3.7, 0.12, 0.76, cafeBlanco, cafeX, 1.07, cafeZ + 0.62);
+crearBloque(1.28, 0.74, 0.58, cafeVidrio, cafeX - 0.95, 1.47, cafeZ + 0.56, false);
+crearBloque(1.32, 0.08, 0.64, cafeOscuro, cafeX - 0.95, 1.08, cafeZ + 0.56);
+[[ -1.31, 1.34], [-0.96, 1.36], [-0.61, 1.34]].forEach(([dx, y]) => {
+    const pastel = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 8), cafeProducto);
+    pastel.position.set(cafeX + dx, y, cafeZ + 0.56);
+    pastel.scale.set(1.15, 0.7, 0.9);
+    pastel.castShadow = true;
+    cafeGroup.add(pastel);
+});
+
+// Espresso machine and grinder sit together at the far end of the counter.
+crearBloque(0.72, 0.72, 0.48, cafeOscuro, cafeX + 0.78, 1.48, cafeZ + 0.58);
+crearBloque(0.58, 0.12, 0.44, cafeBlanco, cafeX + 0.78, 1.88, cafeZ + 0.58);
+crearBloque(0.26, 0.42, 0.3, hormigon, cafeX + 1.43, 1.32, cafeZ + 0.58);
+crearBloque(0.34, 0.06, 0.37, cafeOscuro, cafeX + 1.43, 1.55, cafeZ + 0.58);
+
+// Three stools line the customer side without reaching the central blue aisle.
+[-1.22, 0, 1.22].forEach((dx) => {
+    crearBloque(0.46, 0.14, 0.46, amarillo, cafeX + dx, 0.78, cafeZ + 1.55);
+    crearBloque(0.1, 0.66, 0.1, cafeOscuro, cafeX + dx, 0.42, cafeZ + 1.55);
+    [-0.14, 0.14].forEach((side) => crearBloque(0.34, 0.07, 0.08, cafeOscuro, cafeX + dx, 0.18, cafeZ + 1.55 + side));
+});
+
+// Two small café tables with paired seats occupy the right-hand apron.
+[-0.9, 0.9].forEach((dx) => {
+    const tableX = cafeX + dx;
+    const tableZ = cafeZ + 2.18;
+    crearBloque(0.82, 0.12, 0.72, cafeBlanco, tableX, 0.86, tableZ);
+    crearBloque(0.12, 0.72, 0.12, cafeOscuro, tableX, 0.44, tableZ);
+    [-0.56, 0.56].forEach((side) => {
+        crearBloque(0.42, 0.11, 0.42, azul, tableX, 0.55, tableZ + side);
+        crearBloque(0.08, 0.48, 0.08, cafeOscuro, tableX, 0.28, tableZ + side);
+    });
+});
+
+// Restore the scene's normal add method before creating the other terminal pieces.
+escena.add = agregarElementoTienda;
 
 // Pasarela azul diagonal con marcas blancas de guiado.
 const inicioPasarela = new THREE.Vector3(-2.0, 0.03, 12.0);

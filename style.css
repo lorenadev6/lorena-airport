@@ -177,7 +177,7 @@ button {
 
 .hero-intro {
     max-width: 450px;
-    margin: 24px 0 0;
+    margin: 110px 0 0;
     font-size: 17px;
     font-weight: 700;
     line-height: 1.55;
@@ -418,7 +418,7 @@ button {
     }
 
     .hero-intro {
-        margin-top: 20px;
+        margin-top: 36px;
         font-size: 14px;
     }
 
@@ -472,7 +472,7 @@ button {
     }
 
     .hero-intro {
-        margin-top: 18px;
+        margin-top: 34px;
         font-size: 15px;
     }
 }
@@ -489,7 +489,7 @@ button {
     }
 
     .hero-intro {
-        margin-top: 16px;
+        margin-top: 28px;
         font-size: 13px;
     }
 }
@@ -558,7 +558,7 @@ button {
 
     .hero-intro {
         max-width: 340px;
-        margin-top: 14px;
+        margin-top: 20px;
         font-size: 13px;
         line-height: 1.35;
     }

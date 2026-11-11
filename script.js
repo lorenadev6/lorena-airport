@@ -790,9 +790,194 @@ for (let t = 0.08; t < 0.95; t += 0.105) {
     marca.rotation.y = anguloPasarela;
 }
 
+// Security checkpoint: the arch, baggage scanner and seated operator share one root group.
+const grupoControlSeguridad = new THREE.Group();
+escena.add(grupoControlSeguridad);
+
+function crearCajaControl(grupo, ancho, alto, fondo, material, x, y, z, sombra = true) {
+    const pieza = new THREE.Mesh(new THREE.BoxGeometry(ancho, alto, fondo), material);
+    pieza.position.set(x, y, z);
+    pieza.castShadow = sombra && !material.transparent;
+    pieza.receiveShadow = true;
+    grupo.add(pieza);
+    return pieza;
+}
+
+function crearCilindroControl(grupo, radioSuperior, radioInferior, alto, material, x, y, z, segmentos = 8) {
+    const pieza = new THREE.Mesh(
+        new THREE.CylinderGeometry(radioSuperior, radioInferior, alto, segmentos),
+        material
+    );
+    pieza.position.set(x, y, z);
+    pieza.castShadow = true;
+    pieza.receiveShadow = true;
+    grupo.add(pieza);
+    return pieza;
+}
+
+function crearTramoHumano(grupo, inicio, fin, radio, material) {
+    const puntoInicio = new THREE.Vector3(...inicio);
+    const puntoFin = new THREE.Vector3(...fin);
+    const direccion = new THREE.Vector3().subVectors(puntoFin, puntoInicio);
+    const pieza = new THREE.Mesh(
+        new THREE.CylinderGeometry(radio * 0.88, radio, direccion.length(), 8),
+        material
+    );
+    pieza.position.copy(puntoInicio).add(puntoFin).multiplyScalar(0.5);
+    pieza.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direccion.normalize());
+    pieza.castShadow = true;
+    pieza.receiveShadow = true;
+    grupo.add(pieza);
+    return pieza;
+}
+
+const arcoSeguridadX = 3.4;
+const arcoSeguridadZ = 11.2;
+const materialArcoSeguridad = new THREE.MeshStandardMaterial({ color: "#2454F4", roughness: 0.62 });
+const materialDintelSeguridad = new THREE.MeshStandardMaterial({ color: "#FF643B", roughness: 0.66 });
+const materialInteriorOscuro = new THREE.MeshStandardMaterial({ color: "#222831", roughness: 0.74 });
+const materialLuzVerde = new THREE.MeshStandardMaterial({ color: "#38D46A", emissive: "#20B64E", emissiveIntensity: 0.5, roughness: 0.45 });
+const materialCinta = new THREE.MeshStandardMaterial({ color: "#343A40", roughness: 0.88 });
+const materialRodillo = new THREE.MeshStandardMaterial({ color: "#858D96", metalness: 0.28, roughness: 0.55 });
+const materialEscaner = new THREE.MeshStandardMaterial({ color: "#F5F5F2", roughness: 0.76 });
+const materialEscanerLateral = new THREE.MeshStandardMaterial({ color: "#D7DCE0", roughness: 0.78 });
+const materialMetalOscuro = new THREE.MeshStandardMaterial({ color: "#535B64", metalness: 0.18, roughness: 0.64 });
+const materialPantalla = new THREE.MeshStandardMaterial({ color: "#10151B", roughness: 0.44 });
+const materialUniforme = new THREE.MeshStandardMaterial({ color: "#233B70", roughness: 0.78 });
+const materialPantalon = new THREE.MeshStandardMaterial({ color: "#303A4B", roughness: 0.82 });
+const materialCamisa = new THREE.MeshStandardMaterial({ color: "#F9F4EC", roughness: 0.82 });
+const materialPiel = new THREE.MeshStandardMaterial({ color: "#D9A17D", roughness: 0.88 });
+const materialCabello = new THREE.MeshStandardMaterial({ color: "#342A28", roughness: 0.9 });
+const materialSilla = new THREE.MeshStandardMaterial({ color: "#353A43", roughness: 0.76 });
+const materialZapato = new THREE.MeshStandardMaterial({ color: "#20242B", roughness: 0.76 });
+
+// Metal detector frame with dimensional columns, inner sensors and a lit status panel.
+[-0.75, 0.75].forEach((dx) => {
+    crearCajaControl(grupoControlSeguridad, 0.42, 0.08, 0.44, hormigon, arcoSeguridadX + dx, 0.04, arcoSeguridadZ);
+    crearCajaControl(grupoControlSeguridad, 0.3, 2.25, 0.4, materialArcoSeguridad, arcoSeguridadX + dx, 1.125, arcoSeguridadZ);
+});
+crearCajaControl(grupoControlSeguridad, 1.8, 0.3, 0.44, materialDintelSeguridad, arcoSeguridadX, 2.27, arcoSeguridadZ);
+crearCajaControl(grupoControlSeguridad, 1.2, 0.18, 0.045, materialInteriorOscuro, arcoSeguridadX, 2.29, arcoSeguridadZ + 0.24);
+[-0.25, 0, 0.25].forEach((dx) => {
+    crearCajaControl(grupoControlSeguridad, 0.09, 0.06, 0.025, materialLuzVerde, arcoSeguridadX + dx, 2.29, arcoSeguridadZ + 0.275, false);
+});
+[-1, 1].forEach((lado) => {
+    const xSensor = arcoSeguridadX + lado * 0.57;
+    crearCajaControl(grupoControlSeguridad, 0.055, 0.44, 0.045, materialInteriorOscuro, xSensor, 1.42, arcoSeguridadZ + 0.224);
+    crearCajaControl(grupoControlSeguridad, 0.06, 0.08, 0.03, amarillo, xSensor, 1.72, arcoSeguridadZ + 0.26, false);
+});
+
+// X-ray conveyor sits left of the arch; baggage passes along Z and the opening stays clear.
+const centroEscanerX = 1.1;
+const centroEscanerZ = 11.8;
+const maquinaRayosX = new THREE.Group();
+maquinaRayosX.position.set(centroEscanerX, 0, centroEscanerZ);
+grupoControlSeguridad.add(maquinaRayosX);
+
+// Conveyor bed, metal side rails and visible crosswise rollers.
+crearCajaControl(maquinaRayosX, 0.98, 0.12, 3.12, materialCinta, 0, 0.61, 0);
+[-0.53, 0.53].forEach((x) => {
+    crearCajaControl(maquinaRayosX, 0.1, 0.12, 3.18, materialMetalOscuro, x, 0.7, 0);
+});
+for (let z = -1.35; z <= 1.36; z += 0.34) {
+    const rodillo = crearCilindroControl(maquinaRayosX, 0.038, 0.038, 0.82, materialRodillo, 0, 0.704, z, 8);
+    rodillo.rotation.z = Math.PI / 2;
+}
+[-1.25, 1.25].forEach((z) => {
+    [-0.43, 0.43].forEach((x) => crearCajaControl(maquinaRayosX, 0.12, 0.58, 0.12, materialMetalOscuro, x, 0.3, z));
+});
+
+// Pale shell around the tunnel, with blue accent rails and dark portal rims at both ends.
+[-0.51, 0.51].forEach((x) => {
+    crearCajaControl(maquinaRayosX, 0.16, 1.18, 2.52, materialEscanerLateral, x, 1.35, 0);
+    crearCajaControl(maquinaRayosX, 0.025, 0.075, 2.28, azul, x + Math.sign(x) * 0.095, 1.76, 0);
+});
+crearCajaControl(maquinaRayosX, 1.18, 0.22, 2.58, materialEscaner, 0, 2.02, 0);
+[-1.32, 1.32].forEach((z) => {
+    crearCajaControl(maquinaRayosX, 1.16, 0.1, 0.08, materialInteriorOscuro, 0, 1.86, z);
+    crearCajaControl(maquinaRayosX, 1.16, 0.08, 0.08, materialInteriorOscuro, 0, 0.66, z);
+    [-0.53, 0.53].forEach((x) => {
+        crearCajaControl(maquinaRayosX, 0.08, 1.16, 0.1, materialInteriorOscuro, x, 1.33, z);
+    });
+});
+
+// Coral suitcase and yellow tray ride on the belt, inside the tunnel opening.
+crearCajaControl(maquinaRayosX, 0.46, 0.5, 0.34, coral, 0.04, 0.98, -0.48);
+crearCajaControl(maquinaRayosX, 0.22, 0.045, 0.045, materialInteriorOscuro, 0.04, 1.255, -0.48);
+crearCajaControl(maquinaRayosX, 0.52, 0.07, 0.42, amarillo, -0.02, 0.72, 0.48);
+
+// Operator console and a visible inspection display with colored baggage shapes.
+const mesaOperadorX = 1.1;
+crearCajaControl(maquinaRayosX, 1.0, 0.12, 0.62, materialEscanerLateral, mesaOperadorX, 0.98, 0.38);
+[-0.4, 0.4].forEach((dx) => crearCajaControl(maquinaRayosX, 0.08, 0.84, 0.08, materialMetalOscuro, mesaOperadorX + dx, 0.5, 0.38));
+crearCajaControl(maquinaRayosX, 0.42, 0.035, 0.2, materialInteriorOscuro, mesaOperadorX, 1.06, 0.38);
+const pantallaEscaner = new THREE.Group();
+pantallaEscaner.position.set(mesaOperadorX, 2.2, 0.38);
+crearCajaControl(pantallaEscaner, 0.76, 0.55, 0.11, materialMetalOscuro, 0, 0, 0);
+crearCajaControl(pantallaEscaner, 0.64, 0.41, 0.025, materialPantalla, 0, 0, 0.068);
+crearCajaControl(pantallaEscaner, 0.21, 0.23, 0.025, coral, -0.13, -0.015, 0.09);
+crearCajaControl(pantallaEscaner, 0.08, 0.08, 0.026, amarillo, -0.13, -0.14, 0.092);
+crearCajaControl(pantallaEscaner, 0.23, 0.07, 0.025, materialLuzVerde, 0.15, 0.105, 0.09, false);
+crearCajaControl(pantallaEscaner, 0.12, 0.14, 0.025, azul, 0.17, -0.07, 0.092);
+crearCajaControl(pantallaEscaner, 0.1, 1.16, 0.1, materialMetalOscuro, 0, -0.56, -0.07);
+crearCajaControl(pantallaEscaner, 0.3, 0.14, 0.24, materialMetalOscuro, 0, -1.13, -0.02);
+maquinaRayosX.add(pantallaEscaner);
+
+// One seated low-poly airport worker, oriented toward the monitor and keyboard.
+const operadorSeguridad = new THREE.Group();
+operadorSeguridad.position.set(1.02, 0, 1.1);
+operadorSeguridad.rotation.y = 3.03;
+maquinaRayosX.add(operadorSeguridad);
+
+// Swivel chair, pedestal and compact five-spoke base.
+crearCajaControl(operadorSeguridad, 0.62, 0.12, 0.62, materialSilla, 0, 0.68, -0.1);
+crearCajaControl(operadorSeguridad, 0.58, 0.72, 0.15, materialSilla, 0, 1.04, -0.28);
+crearCilindroControl(operadorSeguridad, 0.065, 0.08, 0.42, materialMetalOscuro, 0, 0.39, -0.1, 8);
+crearCilindroControl(operadorSeguridad, 0.11, 0.11, 0.1, materialSilla, 0, 0.13, -0.1, 8);
+crearCajaControl(operadorSeguridad, 0.76, 0.055, 0.09, materialSilla, 0, 0.12, -0.1);
+crearCajaControl(operadorSeguridad, 0.09, 0.055, 0.7, materialSilla, 0, 0.12, -0.1);
+[-0.32, 0.32].forEach((dx) => [-0.4, 0.2].forEach((dz) => {
+    crearCajaControl(operadorSeguridad, 0.14, 0.1, 0.14, materialZapato, dx, 0.075, dz - 0.1);
+}));
+
+// Uniform, head and hair cap; simple block forms keep the figure in scale with the terminal.
+crearCajaControl(operadorSeguridad, 0.5, 0.76, 0.36, materialUniforme, 0, 1.21, -0.02);
+crearCajaControl(operadorSeguridad, 0.17, 0.18, 0.18, materialPiel, 0, 1.67, 0.02);
+const cabezaOperador = new THREE.Mesh(new THREE.SphereGeometry(0.19, 10, 8), materialPiel);
+cabezaOperador.position.set(0, 1.88, 0.06);
+cabezaOperador.scale.set(0.9, 1.08, 0.92);
+cabezaOperador.castShadow = true;
+operadorSeguridad.add(cabezaOperador);
+const cabelloOperador = new THREE.Mesh(new THREE.SphereGeometry(0.195, 10, 7), materialCabello);
+cabelloOperador.position.set(0, 1.99, -0.005);
+cabelloOperador.scale.set(0.95, 0.55, 0.98);
+cabelloOperador.castShadow = true;
+operadorSeguridad.add(cabelloOperador);
+crearCajaControl(operadorSeguridad, 0.085, 0.25, 0.035, coral, 0, 1.36, 0.183);
+crearCajaControl(operadorSeguridad, 0.12, 0.1, 0.035, amarillo, 0.15, 1.42, 0.19, false);
+
+// Bent legs rest on the chair and point toward the operator console.
+[-0.15, 0.15].forEach((dx) => {
+    crearCajaControl(operadorSeguridad, 0.22, 0.2, 0.48, materialPantalon, dx, 0.73, 0.24);
+    crearTramoHumano(operadorSeguridad, [dx, 0.68, 0.43], [dx, 0.29, 0.56], 0.09, materialPantalon);
+    crearCajaControl(operadorSeguridad, 0.2, 0.12, 0.32, materialZapato, dx, 0.13, 0.65);
+});
+
+// Sleeved arms bend forward to the keyboard; hands rest on the console surface.
+[-1, 1].forEach((lado) => {
+    const hombro = [lado * 0.27, 1.5, -0.04];
+    const codo = [lado * 0.34, 1.28, 0.32];
+    const muneca = [lado < 0 ? -0.24 : 0, 1.06, 0.68];
+    crearTramoHumano(operadorSeguridad, hombro, codo, 0.105, materialCamisa);
+    crearTramoHumano(operadorSeguridad, codo, muneca, 0.085, materialCamisa);
+    const mano = new THREE.Mesh(new THREE.SphereGeometry(0.085, 8, 6), materialPiel);
+    mano.position.set(...muneca);
+    mano.scale.set(1.1, 0.75, 1.2);
+    mano.castShadow = true;
+    operadorSeguridad.add(mano);
+});
+
 // Señalización del acceso y detalles de suelo.
-crearBloque(0.28, 2.4, 0.28, azul, 2.8, 1.2, 11.2);
-crearBloque(0.28, 2.4, 0.28, coral, 4.0, 1.2, 11.2);
 crearBloque(20, 0.045, 0.16, amarillo, 0, 0.025, 14.2, false);
 
 // Panel DEPARTURES en Three.js, con textura localizada y Raycaster propio.
